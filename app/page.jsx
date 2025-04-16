@@ -14,10 +14,10 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex flex-col h-screen">
       <Header />
-      <main className="flex-grow overflow-auto p-2">
-        <div className="w-full h-full flex items-start justify-center">
+      <main className="h-screen overflow-auto">
+        <div className="container-custom mx-auto max-w-4xl">
           {activePage === 'index' && <Index navigateToPage={navigateToPage} />}
           {activePage === 'new' && <New navigateToPage={navigateToPage} />}
         </div>

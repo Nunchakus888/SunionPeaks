@@ -5,12 +5,17 @@
   "version": "1.0.0",
   "action": {
     "default_popup": "index.html",
-    "default_icon": "icon.svg"
+    "default_icon": "icon.svg",
+    "default_width": 400,
+    "default_height": 600
   },
   "icons": {
     "16": "icon.svg",
     "48": "icon.svg",
     "128": "icon.svg"
   },
-  "permissions": []
+  "permissions": [],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }

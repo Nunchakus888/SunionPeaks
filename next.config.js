@@ -8,6 +8,16 @@ const nextConfig = {
     unoptimized: true,
   },
   trailingSlash: true,
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['react', 'react-dom'],
+  },
+  poweredByHeader: false,
+  reactStrictMode: true,
+  compiler: {
+    styledComponents: false,
+  },
+  productionBrowserSourceMaps: false,
 };
 
-module.exports = nextConfig; 
+module.exports = nextConfig;
