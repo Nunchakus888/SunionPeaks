@@ -9,6 +9,17 @@
     margin: 0;
     padding: 0;
   }
+  
+  /* 添加扩展弹出窗口的固定宽度 */
+  html {
+    min-width: 400px;
+    width: 400px;
+  }
+  
+  body {
+    min-width: 400px;
+    width: 400px;
+  }
 }
 
 /* 紫色渐变背景 */

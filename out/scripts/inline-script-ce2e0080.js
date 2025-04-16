@@ -1,0 +1,1 @@
+self.__next_f.push([1,"14:{\"metadata\":[[\"$\",\"title\",\"0\",{\"children\":\"Next Chrome Extension\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"A Chrome extension built with Next.js\"}]],\"error\":null,\"digest\":\"$undefined\"}\ne:{\"metadata\":\"$14:metadata\",\"error\":null,\"digest\":\"$undefined\"}\n"])

@@ -1,0 +1,1 @@
+self.__next_f.push([1,"e:\"$Sreact.suspense\"\nf:I[4911,[],\"AsyncMetadata\"]\n5:[\"$\",\"$e\",null,{\"fallback\":null,\"children\":[\"$\",\"$Lf\",null,{\"promise\":\"$@10\"}]}]\n"])
