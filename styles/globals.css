@@ -22,32 +22,38 @@
   }
 }
 
-/* 紫色渐变背景 */
+/* 蓝紫色渐变背景 */
 .purple-gradient-bg {
-  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #a78bfa 100%);
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a78bfa 100%);
 }
 
-/* 紫色相关颜色变量 */
+/* 蓝紫色相关颜色变量 */
 :root {
-  --purple-light: #c4b5fd;
-  --purple-main: #8b5cf6;
-  --purple-dark: #5b21b6;
-  --purple-accent: #a78bfa;
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 249, 245, 255;
-  --background-end-rgb: 233, 213, 255;
+  --blue-purple-light: #c4b5fd;
+  --blue-purple-main: #4f46e5;
+  --blue-purple-dark: #4338ca;
+  --blue-purple-accent: #7c3aed;
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 79, 70, 229;
+  --background-end-rgb: 124, 58, 237;
+  
+  /* 文字相关变量 */
+  --text-primary: #ffffff;
+  --text-secondary: #ffffff;
+  --text-accent: #ffffff;
+  --text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 76, 29, 149;
-    --background-end-rgb: 124, 58, 237;
+    --background-start-rgb: 67, 56, 202;
+    --background-end-rgb: 79, 70, 229;
   }
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
+  color: var(--text-primary);
   background: linear-gradient(
     to bottom,
     rgb(var(--background-start-rgb)),
@@ -55,6 +61,31 @@ body {
   );
   background-attachment: fixed;
   min-height: 100vh;
+}
+
+/* 文字增强样式 */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  text-shadow: var(--text-shadow);
+  font-weight: 600;
+}
+
+p, span, div {
+  text-shadow: var(--text-shadow);
+}
+
+/* 卡片增强 */
+.card {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 按钮增强 */
+button, .button {
+  text-shadow: var(--text-shadow);
+  font-weight: 500;
 }
 
 /* 全屏布局样式 */
