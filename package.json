@@ -1,22 +1,27 @@
 {
   "name": "next-chrome-starter",
-  "version": "0.0.1",
-  "description": "Next.js Chrome Extension Starter, Demo Example by ibnzUK. https://github.com/ibnzUK/next-chrome-starter",
-  "main": "index.js",
+  "version": "1.0.0",
+  "description": "Chrome Extension built with Next.js",
   "scripts": {
-    "build": "npm run prep",
-    "prep": "npm run exp && node out.js",
-    "exp": "next build && next export",
-    "run": "next start",
-    "dev": "next dev"
+    "dev": "next dev",
+    "build": "NODE_ENV=production next build && node out.js",
+    "start": "next start",
+    "lint": "next lint"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "glob": "^10.2.3",
-    "next": "^13.4.1",
+    "next": "^15.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
+  },
+  "packageManager": "pnpm@10.6.2+sha512.47870716bea1572b53df34ad8647b42962bc790ce2bf4562ba0f643237d7302a3d6a8ecef9e4bdfc01d23af1969aa90485d4cebb0b9638fa5ef1daef656f6c1b",
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.4",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.4"
   }
 }

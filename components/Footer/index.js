@@ -1,23 +1,11 @@
-import styles from './Footer.module.css';
+'use client';
 
 export default function Footer() {
   return (
-    <footer className={styles.footer}>
-      <a
-        href="https://github.com/ibnzUK/next-chrome-starter"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Footer V.0.0.1
-        <span className={styles.logo}>
-          <img
-            src="icons/icon16.png"
-            alt="Logo"
-            width={16}
-            height={16}
-          />
-        </span>
-      </a>
+    <footer className="bg-gray-100 text-gray-600 py-2 px-4 text-xs border-t border-gray-200">
+      <div className="flex items-center justify-center">
+        <span>© {new Date().getFullYear()} Next Extension</span>
+      </div>
     </footer>
   );
 }
