@@ -9,7 +9,7 @@ function BossRecruitmentInner() {
   const [currentJob, setCurrentJob] = useState(null);
   const [selectedCode, setSelectedCode] = useState('');
   const [codePreview, setCodePreview] = useState('');
-  
+
   // Get the first job code as default when component mounts
   useEffect(() => {
     const jobCodes = Object.keys(formData);
@@ -43,9 +43,9 @@ function BossRecruitmentInner() {
   // Handle job deletion
   const handleDeleteJob = () => {
     if (!currentJob) return;
-    
+
     deleteJobForm(currentJob);
-    
+
     // Select another job if available
     const remainingJobs = Object.keys(formData).filter(code => code !== currentJob);
     if (remainingJobs.length > 0) {
@@ -112,7 +112,7 @@ function BossRecruitmentInner() {
     if (!currentJob) return;
     const degrees = ['高中', '大专', '本科', '硕士', '博士'];
     const currentDegrees = [...(formData[currentJob]._geekDegree || [])];
-    
+
     if (checked) {
       // Add degree if not already included
       if (!currentDegrees.includes(degrees[index])) {
@@ -125,7 +125,7 @@ function BossRecruitmentInner() {
         currentDegrees.splice(degreeIndex, 1);
       }
     }
-    
+
     updateFormField(currentJob, '_geekDegree', currentDegrees);
   };
 
@@ -135,13 +135,13 @@ function BossRecruitmentInner() {
       const configStr = JSON.stringify(formData, null, 2);
       const blob = new Blob([configStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      
+
       const a = document.createElement('a');
       a.href = url;
       a.download = 'recruitment_config.json';
       document.body.appendChild(a);
       a.click();
-      
+
       setTimeout(() => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
@@ -154,7 +154,7 @@ function BossRecruitmentInner() {
   // Generate code for using the selected template
   const handlePreviewCode = () => {
     if (!currentJob) return;
-    
+
     const job = formData[currentJob];
     const code = `// 职位模板 - ${job.name}
 const template = {
@@ -177,28 +177,28 @@ const template = {
   const handleImportConfig = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
         const importedConfig = JSON.parse(event.target.result);
-        
+
         // Validate imported config
         if (typeof importedConfig !== 'object') {
           throw new Error('Invalid config format');
         }
-        
+
         // Replace current formData with imported config
         Object.keys(importedConfig).forEach(jobCode => {
           addJobForm(jobCode, importedConfig[jobCode]);
         });
-        
+
         // Select the first job from imported config
         const firstJobCode = Object.keys(importedConfig)[0];
         if (firstJobCode) {
           setCurrentJob(firstJobCode);
         }
-        
+
         // Reset the file input
         e.target.value = '';
       } catch (error) {
@@ -206,7 +206,7 @@ const template = {
         alert('导入配置失败: ' + error.message);
       }
     };
-    
+
     reader.readAsText(file);
   };
 
@@ -215,7 +215,7 @@ const template = {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">招聘模板配置</h1>
         <div className="flex space-x-2">
-          <button 
+          <button
             onClick={handleExportConfig}
             className="px-2 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded hover:from-blue-700 hover:to-indigo-700 text-xs"
           >
@@ -223,18 +223,18 @@ const template = {
           </button>
           <label className="px-2 py-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded hover:from-purple-700 hover:to-indigo-700 text-xs cursor-pointer">
             导入
-            <input 
-              type="file" 
-              accept=".json" 
-              onChange={handleImportConfig} 
-              className="hidden" 
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleImportConfig}
+              className="hidden"
             />
           </label>
         </div>
       </div>
-      
+
       <div className="flex flex-col space-y-2">
-        <select 
+        <select
           value={currentJob || ''}
           onChange={handleJobChange}
           className="bg-gradient-to-r from-indigo-800/70 to-purple-800/70 border border-indigo-600 rounded px-3 py-2 w-full"
@@ -246,13 +246,13 @@ const template = {
           ))}
         </select>
         <div className="flex space-x-2">
-          <button 
+          <button
             onClick={handleAddJob}
             className="px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded hover:from-blue-700 hover:to-indigo-700 flex-1"
           >
             添加模板
           </button>
-          <button 
+          <button
             onClick={handleDeleteJob}
             className="px-3 py-2 bg-gradient-to-r from-purple-600 to-red-600 rounded hover:from-purple-700 hover:to-red-700 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!currentJob}
@@ -261,23 +261,23 @@ const template = {
           </button>
         </div>
       </div>
-      
+
       {currentJob && (
         <div className="space-y-3 bg-gradient-to-br from-indigo-800/50 to-purple-800/50 backdrop-blur-sm rounded-lg p-3 border border-indigo-700/50">
           <div>
             <label className="block text-xs font-medium mb-1 text-blue-300">职位名称</label>
-            <input 
+            <input
               type="text"
               value={formData[currentJob].name || ''}
               onChange={(e) => handleFieldChange('name', e.target.value)}
               className="w-full bg-indigo-900/70 border border-indigo-700 rounded px-3 py-2 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
             />
           </div>
-          
+
           <div className="grid grid-cols-1 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1 text-blue-300">最低工作年限</label>
-              <input 
+              <input
                 type="number"
                 min="0"
                 value={formData[currentJob]._geekWorkYear || 0}
@@ -285,10 +285,10 @@ const template = {
                 className="w-full bg-indigo-900/70 border border-indigo-700 rounded px-3 py-2 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
               />
             </div>
-            
+
             <div>
               <label className="block text-xs font-medium mb-1 text-blue-300">年龄范围</label>
-              <input 
+              <input
                 type="text"
                 value={formData[currentJob]._ageDesc || ''}
                 onChange={(e) => handleFieldChange('_ageDesc', e.target.value)}
@@ -297,11 +297,11 @@ const template = {
               />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1 text-blue-300">最低薪资</label>
-              <input 
+              <input
                 type="number"
                 min="0"
                 value={formData[currentJob]._lowSalary || 0}
@@ -309,10 +309,10 @@ const template = {
                 className="w-full bg-indigo-900/70 border border-indigo-700 rounded px-3 py-2 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
               />
             </div>
-            
+
             <div>
               <label className="block text-xs font-medium mb-1 text-blue-300">最高薪资</label>
-              <input 
+              <input
                 type="number"
                 min="0"
                 value={formData[currentJob]._highSalary || 0}
@@ -321,13 +321,13 @@ const template = {
               />
             </div>
           </div>
-          
+
           <div>
             <label className="block text-xs font-medium mb-1 text-blue-300">学历要求</label>
             <div className="flex flex-wrap gap-x-3 gap-y-2">
               {['高中', '大专', '本科', '硕士', '博士'].map((degree, index) => (
                 <label key={degree} className="flex items-center space-x-1">
-                  <input 
+                  <input
                     type="checkbox"
                     checked={(formData[currentJob]._geekDegree || []).includes(degree)}
                     onChange={(e) => handleDegreeChange(index, e.target.checked)}
@@ -338,11 +338,11 @@ const template = {
               ))}
             </div>
           </div>
-          
+
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-xs font-medium text-blue-300">期望地点</label>
-              <button 
+              <button
                 onClick={handleAddLocation}
                 className="text-xs px-2 py-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded hover:from-blue-700 hover:to-indigo-700"
               >
@@ -352,13 +352,13 @@ const template = {
             <div className="space-y-2">
               {(formData[currentJob]._expectLocationName || []).map((location, index) => (
                 <div key={index} className="flex items-center space-x-2">
-                  <input 
+                  <input
                     type="text"
                     value={location}
                     onChange={(e) => handleLocationChange(index, e.target.value)}
                     className="flex-1 bg-indigo-900/70 border border-indigo-700 rounded px-3 py-1 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
                   />
-                  <button 
+                  <button
                     onClick={() => handleRemoveLocation(index)}
                     className="px-2 py-1 bg-gradient-to-r from-purple-600 to-red-600 rounded hover:from-purple-700 hover:to-red-700"
                   >
@@ -368,21 +368,21 @@ const template = {
               ))}
             </div>
           </div>
-          
+
           <div>
             <label className="block text-xs font-medium mb-1 text-blue-300">招呼语</label>
-            <textarea 
+            <textarea
               value={formData[currentJob]._greeting || ''}
               onChange={(e) => handleFieldChange('_greeting', e.target.value)}
               className="w-full bg-indigo-900/70 border border-indigo-700 rounded px-3 py-2 min-h-[80px] text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
               placeholder="打招呼用的模板文字..."
             />
           </div>
-          
+
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-xs font-medium text-blue-300">关键词</label>
-              <button 
+              <button
                 onClick={handleAddKeyword}
                 className="text-xs px-2 py-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded hover:from-blue-700 hover:to-indigo-700"
               >
@@ -392,13 +392,13 @@ const template = {
             <div className="space-y-2">
               {(formData[currentJob].keywords || []).map((keyword, index) => (
                 <div key={index} className="flex items-center space-x-2">
-                  <input 
+                  <input
                     type="text"
                     value={keyword}
                     onChange={(e) => handleKeywordChange(index, e.target.value)}
                     className="flex-1 bg-indigo-900/70 border border-indigo-700 rounded px-3 py-1 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
                   />
-                  <button 
+                  <button
                     onClick={() => handleRemoveKeyword(index)}
                     className="px-2 py-1 bg-gradient-to-r from-purple-600 to-red-600 rounded hover:from-purple-700 hover:to-red-700"
                   >
@@ -408,16 +408,16 @@ const template = {
               ))}
             </div>
           </div>
-          
+
           <div className="pt-2 border-t border-indigo-700/50">
-            <button 
+            <button
               onClick={handlePreviewCode}
               className="w-full px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded hover:from-indigo-700 hover:to-purple-700"
             >
               生成代码预览
             </button>
           </div>
-          
+
           {codePreview && (
             <div className="mt-3">
               <label className="block text-xs font-medium mb-1 text-blue-300">代码预览</label>
@@ -425,7 +425,7 @@ const template = {
                 <pre className="bg-indigo-950 rounded p-2 overflow-x-auto text-xs border border-indigo-800">
                   {codePreview}
                 </pre>
-                <button 
+                <button
                   onClick={() => {
                     navigator.clipboard.writeText(selectedCode).catch(err => {
                       console.error('Failed to copy text: ', err);
