@@ -1,481 +1,447 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BossFormProvider, useBossForm } from './BossFormContext';
-import JobList from './JobList';
-import CandidateList from './CandidateList';
-import StatsDisplay from './StatsDisplay';
-// Import both named and default exports to ensure compatibility
-import useUtils from './hooks/useUtils';
-import LoginPrompt from './LoginPrompt';
 
 // Create a inner component to use the context
 function BossRecruitmentInner() {
-  const { formData } = useBossForm();
-  const [isLoading, setIsLoading] = useState(false);
-  const [stats, setStats] = useState({});
-  const [jobs, setJobs] = useState([]);
+  const { formData, updateFormField, addJobForm, deleteJobForm } = useBossForm();
   const [currentJob, setCurrentJob] = useState(null);
-  const [candidates, setCandidates] = useState([]);
-  const [loopParams, setLoopParams] = useState({
-    breakLoop: false,
-    breakChat: false,
-  });
-  const [error, setError] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(null); // null means "checking"
-
-  // Make sure we're using the correct utils instance
-  const utils = useUtils(setStats, formData);
-
-  // Check if we're in browser environment
-  const isBrowser = typeof window !== 'undefined';
-  const isChromeExtension = isBrowser && typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
-
-  // Check login status
-  const checkLoginStatus = useCallback(async () => {
-    if (!isChromeExtension) {
-      // If not running as a Chrome extension, assume logged in for development
-      setIsLoggedIn(true);
-      return;
-    }
-
-    try {
-      // Check if we have login status in storage
-      chrome.storage.local.get('bossLoginStatus', (result) => {
-        if (chrome.runtime.lastError) {
-          console.error('Error getting login status:', chrome.runtime.lastError);
-          setIsLoggedIn(false);
-          return;
-        }
-
-        const status = result.bossLoginStatus;
-        if (status && status.isLoggedIn) {
-          // Check if login status is still valid (not older than 30 minutes)
-          const maxAge = 30 * 60 * 1000; // 30 minutes in milliseconds
-          const isStale = Date.now() - status.timestamp > maxAge;
-          
-          setIsLoggedIn(!isStale && status.isLoggedIn);
-        } else {
-          setIsLoggedIn(false);
-        }
-      });
-    } catch (error) {
-      console.error('Error checking login status:', error);
-      setIsLoggedIn(false);
-    }
-  }, [isChromeExtension]);
-
+  const [selectedCode, setSelectedCode] = useState('');
+  const [codePreview, setCodePreview] = useState('');
+  
+  // Get the first job code as default when component mounts
   useEffect(() => {
-    checkLoginStatus();
-    
-    // Set up listener for login status changes
-    if (isChromeExtension) {
-      const listener = (changes, area) => {
-        if (area === 'local' && changes.bossLoginStatus) {
-          const newStatus = changes.bossLoginStatus.newValue;
-          if (newStatus) {
-            setIsLoggedIn(newStatus.isLoggedIn);
-          }
-        }
-      };
-      
-      chrome.storage.onChanged.addListener(listener);
-      return () => chrome.storage.onChanged.removeListener(listener);
+    const jobCodes = Object.keys(formData);
+    if (jobCodes.length > 0 && !currentJob) {
+      setCurrentJob(jobCodes[0]);
     }
-  }, [checkLoginStatus, isChromeExtension]);
+  }, [formData, currentJob]);
 
-  useEffect(() => {
-    if (!isBrowser || !isLoggedIn) return;
-    
-    // Initialize zpToken when component mounts and user is logged in
-    const initializeToken = async () => {
-      try {
-        const token = await utils.getZpToken();
-        if (token) {
-          utils.params.zp_token = token;
-        }
-      } catch (error) {
-        console.error('Failed to initialize token:', error);
-        setError('获取令牌失败: ' + error.message);
-      }
-    };
-    
-    initializeToken();
-  }, [utils, isBrowser, isLoggedIn]);
-
-  const handleOpenBoss = () => {
-    if (isChromeExtension) {
-      // For Chrome extension, find and navigate to BOSS tab or open a new one
-      chrome.tabs.query({url: '*://www.zhipin.com/*'}, (tabs) => {
-        if (tabs && tabs.length > 0) {
-          // Found an existing BOSS tab, activate it
-          chrome.tabs.update(tabs[0].id, {active: true});
-        } else {
-          // No BOSS tab found, open a new one
-          chrome.tabs.create({url: 'https://www.zhipin.com/'});
-        }
-      });
-    } else {
-      // Fallback for non-extension environment
-      window.open('https://www.zhipin.com/', '_blank');
-    }
+  // Handle job selection change
+  const handleJobChange = (e) => {
+    setCurrentJob(e.target.value);
   };
 
-  const handleQueryJobs = async () => {
-    if (!isBrowser || !isLoggedIn) return;
-    
-    setIsLoading(true);
-    setError(null);
-    try {
-      const jobList = await utils.recJobList();
-      setJobs(Array.isArray(jobList) ? jobList : []);
-    } catch (error) {
-      console.error('Failed to query jobs:', error);
-      setError('获取职位列表失败: ' + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSelectJob = (job) => {
-    if (!job) return;
-    
-    setCurrentJob(job);
-    
-    // Initialize stats for the job
-    const jobStats = {
-      name: job.jobName || '未命名职位',
-      positionCode: job.positionCode,
-      locationName: job.locationName || '',
-      salaryDesc: job.salaryDesc || '',
-      page: 1,
-      recommand: 0,
-      pick: 0,
-      chat: 0,
-      search: 0,
-      isFriend: 0,
-      chatList: [],
-      ngList: [],
-    };
-    
-    setStats(prevStats => ({
-      ...prevStats,
-      [job.positionCode]: jobStats
-    }));
-
-    // Clear candidates when switching job
-    setCandidates([]);
-  };
-
-  const handleFetchCandidates = async () => {
-    if (!currentJob || !isBrowser || !isLoggedIn) return;
-    
-    setIsLoading(true);
-    setError(null);
-    try {
-      const currentStats = stats[currentJob.positionCode] || { page: 1 };
-      const response = await utils.geekList({
-        age: 16,
-        page: currentStats.page,
-        jobId: currentJob.encryptId,
-        major: 0,
-        school: 0,
-        gender: 0,
-        salary: 0,
-        degree: 0,
-        keyword1: '',
-        cardType: 0,
-        intention: 0,
-        experience: 0,
-        activation: 0,
-        recentNotView: 0,
-        coverScreenMemory: 0,
-        switchJobFrequency: 0,
-        exchangeResumeWithColleague: 0,
-      });
-      
-      const { geekList, hasMore, page } = response || {};
-      setCandidates(Array.isArray(geekList) ? geekList : []);
-      
-      // Update page in stats if there's more
-      if (hasMore) {
-        setStats(prevStats => ({
-          ...prevStats,
-          [currentJob.positionCode]: {
-            ...(prevStats[currentJob.positionCode] || {}),
-            page: page + 1
-          }
-        }));
-      }
-    } catch (error) {
-      console.error('Failed to fetch candidates:', error);
-      setError('获取候选人列表失败: ' + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleContactCandidate = async (candidate) => {
-    if (!currentJob || !candidate || !isBrowser || !isLoggedIn) return;
-    
-    try {
-      const { geekCard } = candidate;
-      if (!geekCard) {
-        setError('候选人数据不完整');
-        return;
-      }
-      
-      const positionCode = currentJob.positionCode;
-      
-      if (!utils.form[positionCode]) {
-        setError('职位配置不存在');
-        return;
-      }
-      
-      // Check if candidate meets criteria
-      if (!utils.validation(geekCard, stats[positionCode])) {
-        console.warn('Candidate does not meet criteria:', geekCard);
-        return;
-      }
-      
-      // Start chat
-      setIsLoading(true);
-      setError(null);
-      
-      const chatResult = await utils.startChat({
-        lid: geekCard.lid,
-        gid: candidate.encryptGeekId,
-        jid: currentJob.encryptId,
-        from: '',
-        greet: utils.formatGreeting(geekCard, utils.form[positionCode]._greeting),
-        expectId: geekCard.expectId,
-        securityId: geekCard.securityId,
-        geekDesc: geekCard.geekDesc?.content,
-        customGreetingGuide: '-1',
-      });
-      
-      // Update stats
-      if (chatResult) {
-        setStats(prevStats => {
-          const jobStats = prevStats[positionCode] || { chat: 0, chatList: [] };
-          const updatedChatList = [
-            ...jobStats.chatList,
-            {
-              ...utils.formatGeekCard(geekCard),
-              greeting: chatResult.greeting,
-              greetingTip: chatResult.greetingTip,
-              stateDesc: chatResult.stateDesc,
-              status: chatResult.status,
-            }
-          ];
-          
-          return {
-            ...prevStats,
-            [positionCode]: {
-              ...jobStats,
-              chat: jobStats.chat + 1,
-              chatList: updatedChatList
-            }
-          };
-        });
-      }
-    } catch (error) {
-      console.error('Failed to contact candidate:', error);
-      setError('联系候选人失败: ' + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleBatchProcess = async () => {
-    if (!currentJob || !isBrowser || !isLoggedIn) return;
-    
-    setIsLoading(true);
-    setLoopParams({ breakLoop: false, breakChat: false });
-    setError(null);
-    
-    try {
-      for (const candidate of candidates) {
-        if (loopParams.breakLoop) break;
-        
-        if (!candidate) continue;
-        
-        // Update stats
-        setStats(prevStats => {
-          const jobStats = prevStats[currentJob.positionCode] || { recommand: 0 };
-          return {
-            ...prevStats,
-            [currentJob.positionCode]: {
-              ...jobStats,
-              recommand: jobStats.recommand + 1
-            }
-          };
-        });
-        
-        const { isFriend } = candidate;
-        
-        if (isFriend) {
-          setStats(prevStats => {
-            const jobStats = prevStats[currentJob.positionCode] || { isFriend: 0 };
-            return {
-              ...prevStats,
-              [currentJob.positionCode]: {
-                ...jobStats,
-                isFriend: jobStats.isFriend + 1
-              }
-            };
-          });
-          continue;
-        }
-        
-        await handleContactCandidate(candidate);
-        await utils.sleep(5); // Reduced to 5 seconds to avoid timeouts
-      }
-      
-      // Get next page of candidates if needed and not stopped
-      if (candidates.length > 0 && !loopParams.breakLoop) {
-        await handleFetchCandidates();
-      }
-    } catch (error) {
-      console.error('Batch process error:', error);
-      setError('批量处理错误: ' + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleStopProcess = () => {
-    setLoopParams({
-      breakLoop: true,
-      breakChat: true
+  // Handle adding a new job template
+  const handleAddJob = () => {
+    const newJobCode = Math.floor(Math.random() * 900000) + 100000;
+    addJobForm(newJobCode, {
+      name: '新职位模板',
+      _geekWorkYear: 3,
+      _geekDegree: ['本科'],
+      _lowSalary: 10000,
+      _highSalary: 50000,
+      _expectLocationName: ['北京'],
+      _greeting: `你好呀____！很高兴认识你。\n请填写您的招聘信息。`,
+      keywords: [],
+      _ageDesc: '25-35',
     });
+    setCurrentJob(newJobCode.toString());
   };
 
-  const handleDownloadStats = () => {
-    if (!isBrowser) return;
+  // Handle job deletion
+  const handleDeleteJob = () => {
+    if (!currentJob) return;
     
+    deleteJobForm(currentJob);
+    
+    // Select another job if available
+    const remainingJobs = Object.keys(formData).filter(code => code !== currentJob);
+    if (remainingJobs.length > 0) {
+      setCurrentJob(remainingJobs[0]);
+    } else {
+      setCurrentJob(null);
+    }
+  };
+
+  // Handle field changes
+  const handleFieldChange = (field, value) => {
+    if (!currentJob) return;
+    updateFormField(currentJob, field, value);
+  };
+
+  // Handle adding a new keyword
+  const handleAddKeyword = () => {
+    if (!currentJob) return;
+    const currentKeywords = formData[currentJob].keywords || [];
+    updateFormField(currentJob, 'keywords', [...currentKeywords, '']);
+  };
+
+  // Handle keyword change
+  const handleKeywordChange = (index, value) => {
+    if (!currentJob) return;
+    const currentKeywords = [...(formData[currentJob].keywords || [])];
+    currentKeywords[index] = value;
+    updateFormField(currentJob, 'keywords', currentKeywords);
+  };
+
+  // Handle removing a keyword
+  const handleRemoveKeyword = (index) => {
+    if (!currentJob) return;
+    const currentKeywords = [...(formData[currentJob].keywords || [])];
+    currentKeywords.splice(index, 1);
+    updateFormField(currentJob, 'keywords', currentKeywords);
+  };
+
+  // Handle adding a new location
+  const handleAddLocation = () => {
+    if (!currentJob) return;
+    const currentLocations = formData[currentJob]._expectLocationName || [];
+    updateFormField(currentJob, '_expectLocationName', [...currentLocations, '']);
+  };
+
+  // Handle location change
+  const handleLocationChange = (index, value) => {
+    if (!currentJob) return;
+    const currentLocations = [...(formData[currentJob]._expectLocationName || [])];
+    currentLocations[index] = value;
+    updateFormField(currentJob, '_expectLocationName', currentLocations);
+  };
+
+  // Handle removing a location
+  const handleRemoveLocation = (index) => {
+    if (!currentJob) return;
+    const currentLocations = [...(formData[currentJob]._expectLocationName || [])];
+    currentLocations.splice(index, 1);
+    updateFormField(currentJob, '_expectLocationName', currentLocations);
+  };
+
+  // Handle degree change
+  const handleDegreeChange = (index, checked) => {
+    if (!currentJob) return;
+    const degrees = ['高中', '大专', '本科', '硕士', '博士'];
+    const currentDegrees = [...(formData[currentJob]._geekDegree || [])];
+    
+    if (checked) {
+      // Add degree if not already included
+      if (!currentDegrees.includes(degrees[index])) {
+        currentDegrees.push(degrees[index]);
+      }
+    } else {
+      // Remove degree if included
+      const degreeIndex = currentDegrees.indexOf(degrees[index]);
+      if (degreeIndex !== -1) {
+        currentDegrees.splice(degreeIndex, 1);
+      }
+    }
+    
+    updateFormField(currentJob, '_geekDegree', currentDegrees);
+  };
+
+  // Handle exporting config as JSON
+  const handleExportConfig = () => {
     try {
-      const statsData = JSON.stringify(stats, null, 2);
-      const blob = new Blob([statsData], { type: 'application/json' });
+      const configStr = JSON.stringify(formData, null, 2);
+      const blob = new Blob([configStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
+      
       const a = document.createElement('a');
       a.href = url;
-      a.download = `boss_recruitment_stats_${new Date().toISOString()}.json`;
+      a.download = 'recruitment_config.json';
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url); // Clean up
+      
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 0);
     } catch (error) {
-      console.error('Download stats error:', error);
-      setError('下载统计数据失败: ' + error.message);
+      console.error('Failed to export config:', error);
     }
   };
 
-  // If login status is still being checked, show loading
-  if (isLoggedIn === null) {
-    return (
-      <div className="flex items-center justify-center h-full min-h-[600px] w-full p-4">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-lg">正在检查登录状态...</p>
+  // Generate code for using the selected template
+  const handlePreviewCode = () => {
+    if (!currentJob) return;
+    
+    const job = formData[currentJob];
+    const code = `// 职位模板 - ${job.name}
+const template = {
+  name: '${job.name}',
+  _geekWorkYear: ${job._geekWorkYear},
+  _geekDegree: ${JSON.stringify(job._geekDegree)},
+  _lowSalary: ${job._lowSalary},
+  _highSalary: ${job._highSalary},
+  _expectLocationName: ${JSON.stringify(job._expectLocationName)},
+  _greeting: \`${job._greeting}\`,
+  keywords: ${JSON.stringify(job.keywords)},
+  _ageDesc: '${job._ageDesc}',
+};
+`;
+    setCodePreview(code);
+    setSelectedCode(code);
+  };
+
+  // Handle importing configuration
+  const handleImportConfig = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const importedConfig = JSON.parse(event.target.result);
+        
+        // Validate imported config
+        if (typeof importedConfig !== 'object') {
+          throw new Error('Invalid config format');
+        }
+        
+        // Replace current formData with imported config
+        Object.keys(importedConfig).forEach(jobCode => {
+          addJobForm(jobCode, importedConfig[jobCode]);
+        });
+        
+        // Select the first job from imported config
+        const firstJobCode = Object.keys(importedConfig)[0];
+        if (firstJobCode) {
+          setCurrentJob(firstJobCode);
+        }
+        
+        // Reset the file input
+        e.target.value = '';
+      } catch (error) {
+        console.error('Failed to import config:', error);
+        alert('导入配置失败: ' + error.message);
+      }
+    };
+    
+    reader.readAsText(file);
+  };
+
+  return (
+    <div className="space-y-6 text-white">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">招聘模板配置</h1>
+        <div className="flex space-x-2">
+          <button 
+            onClick={handleExportConfig}
+            className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-700 text-sm"
+          >
+            导出配置
+          </button>
+          <label className="px-3 py-1 bg-green-600 rounded hover:bg-green-700 text-sm cursor-pointer">
+            导入配置
+            <input 
+              type="file" 
+              accept=".json" 
+              onChange={handleImportConfig} 
+              className="hidden" 
+            />
+          </label>
         </div>
       </div>
-    );
-  }
-
-  // If not logged in, show login prompt
-  if (!isLoggedIn) {
-    return <LoginPrompt onOpenBoss={handleOpenBoss} />;
-  }
-
-  // Main UI when logged in
-  return (
-    <div className="flex flex-col h-full min-h-[600px] w-full p-4">
-      <h1 className="text-2xl font-bold mb-4">Boss直聘招聘助手</h1>
       
-      {error && (
-        <div className="mb-4 p-3 bg-red-900/30 text-red-300 rounded-lg border border-red-800">
-          {error}
+      <div className="flex items-center space-x-2">
+        <select 
+          value={currentJob || ''}
+          onChange={handleJobChange}
+          className="bg-gray-800 border border-gray-700 rounded px-3 py-2 flex-1"
+        >
+          {Object.keys(formData).map(jobCode => (
+            <option key={jobCode} value={jobCode}>
+              {formData[jobCode].name} ({jobCode})
+            </option>
+          ))}
+        </select>
+        <button 
+          onClick={handleAddJob}
+          className="px-3 py-2 bg-green-600 rounded hover:bg-green-700"
+        >
+          添加
+        </button>
+        <button 
+          onClick={handleDeleteJob}
+          className="px-3 py-2 bg-red-600 rounded hover:bg-red-700"
+          disabled={!currentJob}
+        >
+          删除
+        </button>
+      </div>
+      
+      {currentJob && (
+        <div className="space-y-4 bg-gray-800 rounded-lg p-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">职位名称</label>
+            <input 
+              type="text"
+              value={formData[currentJob].name || ''}
+              onChange={(e) => handleFieldChange('name', e.target.value)}
+              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+            />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">最低工作年限</label>
+              <input 
+                type="number"
+                min="0"
+                value={formData[currentJob]._geekWorkYear || 0}
+                onChange={(e) => handleFieldChange('_geekWorkYear', parseInt(e.target.value))}
+                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">年龄范围</label>
+              <input 
+                type="text"
+                value={formData[currentJob]._ageDesc || ''}
+                onChange={(e) => handleFieldChange('_ageDesc', e.target.value)}
+                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                placeholder="例如: 25-35"
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">最低薪资</label>
+              <input 
+                type="number"
+                min="0"
+                value={formData[currentJob]._lowSalary || 0}
+                onChange={(e) => handleFieldChange('_lowSalary', parseInt(e.target.value))}
+                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">最高薪资</label>
+              <input 
+                type="number"
+                min="0"
+                value={formData[currentJob]._highSalary || 0}
+                onChange={(e) => handleFieldChange('_highSalary', parseInt(e.target.value))}
+                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">学历要求</label>
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              {['高中', '大专', '本科', '硕士', '博士'].map((degree, index) => (
+                <label key={degree} className="flex items-center space-x-2">
+                  <input 
+                    type="checkbox"
+                    checked={(formData[currentJob]._geekDegree || []).includes(degree)}
+                    onChange={(e) => handleDegreeChange(index, e.target.checked)}
+                    className="rounded bg-gray-700 border-gray-600"
+                  />
+                  <span>{degree}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium">期望地点</label>
+              <button 
+                onClick={handleAddLocation}
+                className="text-xs px-2 py-1 bg-blue-600 rounded hover:bg-blue-700"
+              >
+                添加地点
+              </button>
+            </div>
+            <div className="space-y-2">
+              {(formData[currentJob]._expectLocationName || []).map((location, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <input 
+                    type="text"
+                    value={location}
+                    onChange={(e) => handleLocationChange(index, e.target.value)}
+                    className="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                  />
+                  <button 
+                    onClick={() => handleRemoveLocation(index)}
+                    className="px-2 py-2 bg-red-600 rounded hover:bg-red-700"
+                  >
+                    删除
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">招呼语</label>
+            <textarea 
+              value={formData[currentJob]._greeting || ''}
+              onChange={(e) => handleFieldChange('_greeting', e.target.value)}
+              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 min-h-[100px]"
+              placeholder="打招呼用的模板文字..."
+            />
+          </div>
+          
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium">关键词</label>
+              <button 
+                onClick={handleAddKeyword}
+                className="text-xs px-2 py-1 bg-blue-600 rounded hover:bg-blue-700"
+              >
+                添加关键词
+              </button>
+            </div>
+            <div className="space-y-2">
+              {(formData[currentJob].keywords || []).map((keyword, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <input 
+                    type="text"
+                    value={keyword}
+                    onChange={(e) => handleKeywordChange(index, e.target.value)}
+                    className="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                  />
+                  <button 
+                    onClick={() => handleRemoveKeyword(index)}
+                    className="px-2 py-2 bg-red-600 rounded hover:bg-red-700"
+                  >
+                    删除
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="pt-2 border-t border-gray-700">
+            <button 
+              onClick={handlePreviewCode}
+              className="w-full px-3 py-2 bg-purple-600 rounded hover:bg-purple-700"
+            >
+              生成代码预览
+            </button>
+          </div>
+          
+          {codePreview && (
+            <div className="mt-4">
+              <label className="block text-sm font-medium mb-1">代码预览</label>
+              <div className="relative">
+                <pre className="bg-gray-900 rounded p-3 overflow-x-auto text-sm">
+                  {codePreview}
+                </pre>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedCode).catch(err => {
+                      console.error('Failed to copy text: ', err);
+                    });
+                  }}
+                  className="absolute top-2 right-2 px-2 py-1 bg-blue-600 rounded hover:bg-blue-700 text-xs"
+                >
+                  复制代码
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
-        <div className="bg-gray-800 p-4 rounded-lg flex flex-col h-full">
-          <h2 className="text-xl font-semibold mb-3">职位管理</h2>
-          <div className="flex flex-wrap gap-2 mb-4">
-            <button 
-              className="bg-blue-600 px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleQueryJobs}
-              disabled={isLoading}
-              type="button"
-            >
-              {isLoading ? '加载中...' : '获取招聘列表'}
-            </button>
-            <button 
-              className="bg-green-600 px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleDownloadStats}
-              disabled={isLoading || Object.keys(stats).length === 0}
-              type="button"
-            >
-              下载统计数据
-            </button>
-          </div>
-          
-          <div className="flex-1 overflow-auto">
-            <JobList 
-              jobs={jobs} 
-              currentJob={currentJob}
-              onSelectJob={handleSelectJob}
-            />
-          </div>
-        </div>
-        
-        <div className="bg-gray-800 p-4 rounded-lg flex flex-col h-full">
-          <h2 className="text-xl font-semibold mb-3">候选人管理</h2>
-          <div className="flex flex-wrap gap-2 mb-4">
-            <button 
-              className="bg-blue-600 px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleFetchCandidates}
-              disabled={isLoading || !currentJob}
-              type="button"
-            >
-              {isLoading ? '加载中...' : '获取候选人'}
-            </button>
-            <button 
-              className="bg-green-600 px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleBatchProcess}
-              disabled={isLoading || !currentJob || candidates.length === 0}
-              type="button"
-            >
-              批量处理
-            </button>
-            <button 
-              className="bg-red-600 px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleStopProcess}
-              disabled={!isLoading}
-              type="button"
-            >
-              停止处理
-            </button>
-          </div>
-          
-          <div className="flex-1 overflow-auto">
-            <CandidateList 
-              candidates={candidates}
-              onContactCandidate={handleContactCandidate}
-            />
-          </div>
-        </div>
-      </div>
-      
-      <div className="mt-4 bg-gray-800 p-4 rounded-lg">
-        <StatsDisplay stats={stats} currentJob={currentJob} />
-      </div>
     </div>
   );
 }
 
-// Wrapper component that provides the BossFormContext
 export default function BossRecruitment() {
   return (
     <BossFormProvider>
