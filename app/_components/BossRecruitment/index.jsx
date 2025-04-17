@@ -211,18 +211,18 @@ const template = {
   };
 
   return (
-    <div className="space-y-6 text-white">
+    <div className="space-y-4 text-white text-sm">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">招聘模板配置</h1>
+        <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">招聘模板配置</h1>
         <div className="flex space-x-2">
           <button 
             onClick={handleExportConfig}
-            className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-700 text-sm"
+            className="px-2 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded hover:from-blue-700 hover:to-indigo-700 text-xs"
           >
-            导出配置
+            导出
           </button>
-          <label className="px-3 py-1 bg-green-600 rounded hover:bg-green-700 text-sm cursor-pointer">
-            导入配置
+          <label className="px-2 py-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded hover:from-purple-700 hover:to-indigo-700 text-xs cursor-pointer">
+            导入
             <input 
               type="file" 
               accept=".json" 
@@ -233,11 +233,11 @@ const template = {
         </div>
       </div>
       
-      <div className="flex items-center space-x-2">
+      <div className="flex flex-col space-y-2">
         <select 
           value={currentJob || ''}
           onChange={handleJobChange}
-          className="bg-gray-800 border border-gray-700 rounded px-3 py-2 flex-1"
+          className="bg-gradient-to-r from-indigo-800/70 to-purple-800/70 border border-indigo-600 rounded px-3 py-2 w-full"
         >
           {Object.keys(formData).map(jobCode => (
             <option key={jobCode} value={jobCode}>
@@ -245,93 +245,95 @@ const template = {
             </option>
           ))}
         </select>
-        <button 
-          onClick={handleAddJob}
-          className="px-3 py-2 bg-green-600 rounded hover:bg-green-700"
-        >
-          添加
-        </button>
-        <button 
-          onClick={handleDeleteJob}
-          className="px-3 py-2 bg-red-600 rounded hover:bg-red-700"
-          disabled={!currentJob}
-        >
-          删除
-        </button>
+        <div className="flex space-x-2">
+          <button 
+            onClick={handleAddJob}
+            className="px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded hover:from-blue-700 hover:to-indigo-700 flex-1"
+          >
+            添加模板
+          </button>
+          <button 
+            onClick={handleDeleteJob}
+            className="px-3 py-2 bg-gradient-to-r from-purple-600 to-red-600 rounded hover:from-purple-700 hover:to-red-700 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!currentJob}
+          >
+            删除模板
+          </button>
+        </div>
       </div>
       
       {currentJob && (
-        <div className="space-y-4 bg-gray-800 rounded-lg p-4">
+        <div className="space-y-3 bg-gradient-to-br from-indigo-800/50 to-purple-800/50 backdrop-blur-sm rounded-lg p-3 border border-indigo-700/50">
           <div>
-            <label className="block text-sm font-medium mb-1">职位名称</label>
+            <label className="block text-xs font-medium mb-1 text-blue-300">职位名称</label>
             <input 
               type="text"
               value={formData[currentJob].name || ''}
               onChange={(e) => handleFieldChange('name', e.target.value)}
-              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+              className="w-full bg-indigo-900/70 border border-indigo-700 rounded px-3 py-2 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
             />
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3">
             <div>
-              <label className="block text-sm font-medium mb-1">最低工作年限</label>
+              <label className="block text-xs font-medium mb-1 text-blue-300">最低工作年限</label>
               <input 
                 type="number"
                 min="0"
                 value={formData[currentJob]._geekWorkYear || 0}
                 onChange={(e) => handleFieldChange('_geekWorkYear', parseInt(e.target.value))}
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                className="w-full bg-indigo-900/70 border border-indigo-700 rounded px-3 py-2 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-1">年龄范围</label>
+              <label className="block text-xs font-medium mb-1 text-blue-300">年龄范围</label>
               <input 
                 type="text"
                 value={formData[currentJob]._ageDesc || ''}
                 onChange={(e) => handleFieldChange('_ageDesc', e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                className="w-full bg-indigo-900/70 border border-indigo-700 rounded px-3 py-2 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
                 placeholder="例如: 25-35"
               />
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium mb-1">最低薪资</label>
+              <label className="block text-xs font-medium mb-1 text-blue-300">最低薪资</label>
               <input 
                 type="number"
                 min="0"
                 value={formData[currentJob]._lowSalary || 0}
                 onChange={(e) => handleFieldChange('_lowSalary', parseInt(e.target.value))}
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                className="w-full bg-indigo-900/70 border border-indigo-700 rounded px-3 py-2 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-1">最高薪资</label>
+              <label className="block text-xs font-medium mb-1 text-blue-300">最高薪资</label>
               <input 
                 type="number"
                 min="0"
                 value={formData[currentJob]._highSalary || 0}
                 onChange={(e) => handleFieldChange('_highSalary', parseInt(e.target.value))}
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                className="w-full bg-indigo-900/70 border border-indigo-700 rounded px-3 py-2 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
               />
             </div>
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1">学历要求</label>
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
+            <label className="block text-xs font-medium mb-1 text-blue-300">学历要求</label>
+            <div className="flex flex-wrap gap-x-3 gap-y-2">
               {['高中', '大专', '本科', '硕士', '博士'].map((degree, index) => (
-                <label key={degree} className="flex items-center space-x-2">
+                <label key={degree} className="flex items-center space-x-1">
                   <input 
                     type="checkbox"
                     checked={(formData[currentJob]._geekDegree || []).includes(degree)}
                     onChange={(e) => handleDegreeChange(index, e.target.checked)}
-                    className="rounded bg-gray-700 border-gray-600"
+                    className="rounded bg-indigo-900/70 border-indigo-700 text-purple-600 focus:ring-purple-500"
                   />
-                  <span>{degree}</span>
+                  <span className="text-xs">{degree}</span>
                 </label>
               ))}
             </div>
@@ -339,12 +341,12 @@ const template = {
           
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium">期望地点</label>
+              <label className="block text-xs font-medium text-blue-300">期望地点</label>
               <button 
                 onClick={handleAddLocation}
-                className="text-xs px-2 py-1 bg-blue-600 rounded hover:bg-blue-700"
+                className="text-xs px-2 py-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded hover:from-blue-700 hover:to-indigo-700"
               >
-                添加地点
+                添加
               </button>
             </div>
             <div className="space-y-2">
@@ -354,11 +356,11 @@ const template = {
                     type="text"
                     value={location}
                     onChange={(e) => handleLocationChange(index, e.target.value)}
-                    className="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                    className="flex-1 bg-indigo-900/70 border border-indigo-700 rounded px-3 py-1 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
                   />
                   <button 
                     onClick={() => handleRemoveLocation(index)}
-                    className="px-2 py-2 bg-red-600 rounded hover:bg-red-700"
+                    className="px-2 py-1 bg-gradient-to-r from-purple-600 to-red-600 rounded hover:from-purple-700 hover:to-red-700"
                   >
                     删除
                   </button>
@@ -368,23 +370,23 @@ const template = {
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1">招呼语</label>
+            <label className="block text-xs font-medium mb-1 text-blue-300">招呼语</label>
             <textarea 
               value={formData[currentJob]._greeting || ''}
               onChange={(e) => handleFieldChange('_greeting', e.target.value)}
-              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 min-h-[100px]"
+              className="w-full bg-indigo-900/70 border border-indigo-700 rounded px-3 py-2 min-h-[80px] text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
               placeholder="打招呼用的模板文字..."
             />
           </div>
           
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium">关键词</label>
+              <label className="block text-xs font-medium text-blue-300">关键词</label>
               <button 
                 onClick={handleAddKeyword}
-                className="text-xs px-2 py-1 bg-blue-600 rounded hover:bg-blue-700"
+                className="text-xs px-2 py-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded hover:from-blue-700 hover:to-indigo-700"
               >
-                添加关键词
+                添加
               </button>
             </div>
             <div className="space-y-2">
@@ -394,11 +396,11 @@ const template = {
                     type="text"
                     value={keyword}
                     onChange={(e) => handleKeywordChange(index, e.target.value)}
-                    className="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                    className="flex-1 bg-indigo-900/70 border border-indigo-700 rounded px-3 py-1 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
                   />
                   <button 
                     onClick={() => handleRemoveKeyword(index)}
-                    className="px-2 py-2 bg-red-600 rounded hover:bg-red-700"
+                    className="px-2 py-1 bg-gradient-to-r from-purple-600 to-red-600 rounded hover:from-purple-700 hover:to-red-700"
                   >
                     删除
                   </button>
@@ -407,20 +409,20 @@ const template = {
             </div>
           </div>
           
-          <div className="pt-2 border-t border-gray-700">
+          <div className="pt-2 border-t border-indigo-700/50">
             <button 
               onClick={handlePreviewCode}
-              className="w-full px-3 py-2 bg-purple-600 rounded hover:bg-purple-700"
+              className="w-full px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded hover:from-indigo-700 hover:to-purple-700"
             >
               生成代码预览
             </button>
           </div>
           
           {codePreview && (
-            <div className="mt-4">
-              <label className="block text-sm font-medium mb-1">代码预览</label>
+            <div className="mt-3">
+              <label className="block text-xs font-medium mb-1 text-blue-300">代码预览</label>
               <div className="relative">
-                <pre className="bg-gray-900 rounded p-3 overflow-x-auto text-sm">
+                <pre className="bg-indigo-950 rounded p-2 overflow-x-auto text-xs border border-indigo-800">
                   {codePreview}
                 </pre>
                 <button 
@@ -429,9 +431,9 @@ const template = {
                       console.error('Failed to copy text: ', err);
                     });
                   }}
-                  className="absolute top-2 right-2 px-2 py-1 bg-blue-600 rounded hover:bg-blue-700 text-xs"
+                  className="absolute top-1 right-1 px-2 py-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded hover:from-blue-700 hover:to-indigo-700 text-xs"
                 >
-                  复制代码
+                  复制
                 </button>
               </div>
             </div>

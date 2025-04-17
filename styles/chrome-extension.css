@@ -19,27 +19,3 @@ body, html {
   display: flex !important;
   flex-direction: column !important;
 }
-
-.h-screen {
-  height: 600px !important;
-  min-height: 600px !important;
-}
-
-/* Ensure all flex columns take full height */
-.flex-col {
-  min-height: inherit;
-}
-
-/* Ensure scrollable areas have proper height */
-.overflow-auto {
-  max-height: none !important;
-}
-
-/* Fix for Chrome extension popup */
-@media screen {
-  body {
-    position: relative !important;
-    width: 800px !important;
-    height: 600px !important;
-  }
-} 

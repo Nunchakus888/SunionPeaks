@@ -7,7 +7,7 @@ import BossRecruitment from './BossRecruitment';
 // Loading component
 function LoadingComponent() {
   return (
-    <div className="flex items-center justify-center h-screen min-h-[400px] w-full bg-gray-900 text-white">
+    <div className="flex items-center justify-center h-screen min-h-[400px] w-full bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800 text-white">
       <div className="text-center">
         <div className="text-lg font-semibold mb-4">加载中...</div>
       </div>
@@ -18,7 +18,7 @@ function LoadingComponent() {
 // Error boundary component
 function ErrorFallback() {
   return (
-    <div className="flex items-center justify-center h-screen min-h-[400px] w-full bg-gray-900 text-white">
+    <div className="flex items-center justify-center h-screen min-h-[400px] w-full bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800 text-white">
       <div className="text-center">
         <div className="text-lg font-semibold mb-4">加载组件时出错</div>
         <button 
@@ -27,7 +27,7 @@ function ErrorFallback() {
               window.location.reload();
             }
           }}
-          className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
+          className="px-4 py-2 bg-indigo-600 rounded hover:bg-indigo-700"
         >
           重试
         </button>
@@ -68,17 +68,6 @@ function SafeComponent({ children }) {
     setIsMounted(true);
     
     // Set popup dimensions for Chrome extension
-    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
-      // Running as a Chrome extension
-      document.body.style.width = '600px';
-      document.body.style.height = '600px';
-      document.body.style.minWidth = '600px';
-      document.body.style.minHeight = '600px';
-      document.documentElement.style.width = '600px';
-      document.documentElement.style.height = '600px';
-      document.documentElement.style.minWidth = '600px';
-      document.documentElement.style.minHeight = '600px';
-    }
   }, []);
   
   if (!isMounted) {
@@ -86,7 +75,7 @@ function SafeComponent({ children }) {
   }
   
   return (
-    <div className="w-full h-full min-h-[600px] min-w-[600px]">
+    <div className="w-full h-full min-h-[812px] min-w-[375px]">
       {children}
     </div>
   );
