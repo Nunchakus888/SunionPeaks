@@ -1,18 +1,38 @@
 {
   "manifest_version": 3,
-  "name": "Next Chrome Extension",
-  "description": "A Chrome extension built with Next.js",
+  "name": "Boss Recruitment Assistant",
+  "description": "A Boss Recruitment assistant for Chrome",
   "version": "1.0.0",
   "action": {
     "default_popup": "index.html",
-    "default_icon": "icon.svg"
+    "default_icon": "icon.svg",
+    "default_title": "Boss Recruitment Assistant"
   },
   "icons": {
     "16": "icon.svg",
     "48": "icon.svg",
     "128": "icon.svg"
   },
-  "permissions": [],
+  "permissions": [
+    "cookies",
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.zhipin.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.zhipin.com/*"],
+      "js": ["contentScript.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }

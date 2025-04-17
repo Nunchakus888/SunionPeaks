@@ -1,0 +1,45 @@
+/* Chrome Extension Popup Styles */
+
+body, html {
+  width: 800px !important;
+  height: 600px !important;
+  min-width: 800px !important;
+  min-height: 600px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: auto !important;
+  background-color: #111827 !important; /* Tailwind gray-900 */
+  color: white !important;
+}
+
+#__next, main, [data-nextjs-root], [data-nextjs-body] {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 600px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.h-screen {
+  height: 600px !important;
+  min-height: 600px !important;
+}
+
+/* Ensure all flex columns take full height */
+.flex-col {
+  min-height: inherit;
+}
+
+/* Ensure scrollable areas have proper height */
+.overflow-auto {
+  max-height: none !important;
+}
+
+/* Fix for Chrome extension popup */
+@media screen {
+  body {
+    position: relative !important;
+    width: 800px !important;
+    height: 600px !important;
+  }
+} 

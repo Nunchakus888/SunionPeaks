@@ -1,27 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import Index from '../components/Index';
-import New from '../components/New';
+import BossRecruitment from './_components';
 
 export default function Home() {
-  const [activePage, setActivePage] = useState('index');
-
-  const navigateToPage = (page) => {
-    setActivePage(page);
-  };
-
   return (
-    <div className="flex flex-col h-screen">
-      <main className="h-screen overflow-auto">
-        <div className="container-custom mx-auto max-w-4xl">
-          {activePage === 'index' && <Index navigateToPage={navigateToPage} />}
-          {activePage === 'new' && <New navigateToPage={navigateToPage} />}
+    <div className="flex flex-col h-full min-h-[600px] w-full bg-gray-900">
+      <main className="flex-1 overflow-auto min-h-[600px]">
+        <div className="container mx-auto max-w-7xl h-full py-4">
+          <BossRecruitment />
         </div>
       </main>
-      {/* <Footer /> */}
     </div>
   );
 } 
